@@ -3,6 +3,7 @@ package me.d4rk.redditstream;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import me.d4rk.redditstream.objects.RedditPost;
+import me.d4rk.redditstream.objects.RedditSubreddit;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import java.util.TimerTask;
 
 public class RedditStream {
 
-    private int delay = 5000;
+    public static int delay = 5000;
     private Thread streamThread;
     private RedditListener listener = null;
     private RedditWatcher watcher = null;
@@ -52,19 +53,23 @@ public class RedditStream {
             String permalink = "https://www.reddit.com" + jo.getString("permalink");
             if(!oldEntries.contains(permalink)){
                 RedditPost post = new RedditPost(
-                        jo.getString("subreddit"),
+                        new RedditSubreddit(jo.getString("subreddit")),
                         jo.getString("author"),
                         jo.getString("title"),
                         jo.getString("selftext"),
                         jo.getString("url"),
                         permalink,
+                        jo.getInt("score"),
+                        jo.getInt("ups"),
+                        jo.getInt("downs"),
                         jo.getBoolean("over_18"),
                         jo.getBoolean("spoiler"),
-                        jo.getBoolean("quarantine")
+                        jo.getBoolean("quarantine"),
+                        jo.getLong("created")
                 );
                 if(watcher != null){
                     for (String sub : watcher.subreddits) {
-                        if(sub.equalsIgnoreCase(post.getSubreddit())){
+                        if(sub.equalsIgnoreCase(post.getSubreddit().getName())){
                             listener.onPostCreated(post);
                             break;
                         }
