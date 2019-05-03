@@ -6,27 +6,22 @@ import me.d4rk.redditstream.RedditStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class RedditPost  {
+public class RedditComment {
 
+    private RedditPost post;
     private RedditSubreddit subreddit;
-    private String author, title, selftext, link, permalink;
-    private boolean spoiler, nsfw, quarantine, complete;
+    private String author, body, link, permalink;
+    private boolean spoiler, nsfw, quarantine;
     private int score, upvotes, downvotes;
     private long createdAt, updatedAt;
 
-    public RedditPost(String permalink){
-        this.permalink = permalink;
-        this.complete = false;
-    }
-
-    public RedditPost(RedditSubreddit subreddit, String author, String title, String selftext,
-                      String link, String permalink, int score, int upvotes, int downvotes,
-                      boolean spoiler, boolean nsfw, boolean quarantine, long createdAt) {
+    public RedditComment(RedditPost post, RedditSubreddit subreddit, String author, String body, String permalink,
+                         int score, int upvotes, int downvotes, boolean spoiler, boolean nsfw, boolean quarantine,
+                         long createdAt) {
+        this.post = post;
         this.subreddit = subreddit;
         this.author = author;
-        this.title = title;
-        this.selftext = selftext;
-        this.link = link;
+        this.body = body;
         this.permalink = permalink;
         this.score = score;
         this.upvotes = upvotes;
@@ -36,12 +31,20 @@ public class RedditPost  {
         this.quarantine = quarantine;
         this.createdAt = createdAt;
         this.updatedAt = System.currentTimeMillis();
+    }
 
-        this.complete = true;
+    public RedditPost getPost() {
+        return post;
+    }
+
+    public RedditPost getPost(boolean updatePost) {
+        if(updatePost){
+            checkTime();
+        }
+        return post;
     }
 
     public RedditSubreddit getSubreddit() {
-        checkComplete();
         return subreddit;
     }
 
@@ -49,11 +52,10 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return getSubreddit();
+        return subreddit;
     }
 
     public String getAuthor() {
-        checkComplete();
         return author;
     }
 
@@ -61,35 +63,22 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return getAuthor();
+        return author;
     }
 
-    public String getTitle() {
-        checkComplete();
-        return title;
+    public String getBody() {
+        return body;
     }
 
-    public String getTitle(boolean updatePost) {
+    public String getBody(boolean updatePost) {
         if(updatePost){
             checkTime();
         }
-        return getTitle();
+        return body;
     }
 
-    public String getSelftext() {
-        checkComplete();
-        return selftext;
-    }
-
-    public String getSelftext(boolean updatePost) {
-        if(updatePost){
-            checkTime();
-        }
-        return getSelftext();
-    }
 
     public String getLink() {
-        checkComplete();
         return link;
     }
 
@@ -97,11 +86,10 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return getLink();
+        return link;
     }
 
     public String getPermalink() {
-        checkComplete();
         return permalink;
     }
 
@@ -109,11 +97,10 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return getPermalink();
+        return permalink;
     }
 
     public boolean isSpoiler() {
-        checkComplete();
         return spoiler;
     }
 
@@ -121,11 +108,10 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return isSpoiler();
+        return spoiler;
     }
 
     public boolean isNsfw() {
-        checkComplete();
         return nsfw;
     }
 
@@ -133,11 +119,10 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return isNsfw();
+        return nsfw;
     }
 
     public boolean isQuarantine() {
-        checkComplete();
         return quarantine;
     }
 
@@ -145,11 +130,10 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return isQuarantine();
+        return quarantine;
     }
 
     public int getScore() {
-        checkComplete();
         return score;
     }
 
@@ -157,11 +141,10 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return getScore();
+        return score;
     }
 
     public int getUpvotes() {
-        checkComplete();
         return upvotes;
     }
 
@@ -169,11 +152,10 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return getUpvotes();
+        return upvotes;
     }
 
     public int getDownvotes() {
-        checkComplete();
         return downvotes;
     }
 
@@ -181,11 +163,10 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return getDownvotes();
+        return downvotes;
     }
 
     public long getCreatedAt() {
-        checkComplete();
         return createdAt;
     }
 
@@ -193,13 +174,7 @@ public class RedditPost  {
         if(updatePost){
             checkTime();
         }
-        return getCreatedAt();
-    }
-
-    private void checkComplete() {
-        if(!complete) {
-            updateObject();
-        }
+        return createdAt;
     }
 
     private void checkTime(){
@@ -216,8 +191,7 @@ public class RedditPost  {
                     .asJson().getBody().getArray();
             JSONObject jo = json.getJSONObject(0).getJSONObject("data").getJSONArray("children").getJSONObject(0).getJSONObject("data");
             author = jo.getString("author");
-            title = jo.getString("title");
-            selftext = jo.getString("selftext");
+            body = jo.getString("body");
             link = jo.getString("url");
             score = jo.getInt("score");
             upvotes = jo.getInt("ups");

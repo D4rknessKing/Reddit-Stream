@@ -8,27 +8,31 @@ import org.json.JSONObject;
 public class RedditSubreddit {
 
     private String name, title, description;
-    private boolean nsfw, quarantine;
+    private Boolean nsfw, quarantine, complete;
     private int subscribers;
     private long createdAt, updatedAt;
 
-    public RedditSubreddit(String nam) {
-        name = nam;
-        updateObject();
+    public RedditSubreddit(String name) {
+        this.name = name;
+        this.complete = false;
     }
 
-    public RedditSubreddit(String nam, String tit, String des, boolean nsf, boolean qua, int sub, long cre) {
-        name = nam;
-        title = tit;
-        description = des;
-        nsfw = nsf;
-        quarantine = qua;
-        subscribers = sub;
-        createdAt = cre;
-        updatedAt = System.currentTimeMillis();
+    public RedditSubreddit(String name, String title, String description, boolean nsfw,
+                           boolean quarantine, int subscribers, long createdAt) {
+        this.name = name;
+        this.title = title;
+        this.description = description;
+        this.nsfw = nsfw;
+        this.quarantine = quarantine;
+        this.subscribers = subscribers;
+        this.createdAt = createdAt;
+        this.updatedAt = System.currentTimeMillis();
+
+        this.complete = true;
     }
 
     public String getName() {
+        checkComplete();
         return name;
     }
 
@@ -36,10 +40,11 @@ public class RedditSubreddit {
         if(updatePost){
             checkTime();
         }
-        return name;
+        return getName();
     }
 
     public String getTitle() {
+        checkComplete();
         return title;
     }
 
@@ -47,10 +52,11 @@ public class RedditSubreddit {
         if(updatePost){
             checkTime();
         }
-        return title;
+        return getTitle();
     }
 
     public String getDescription() {
+        checkComplete();
         return description;
     }
 
@@ -58,10 +64,11 @@ public class RedditSubreddit {
         if(updatePost){
             checkTime();
         }
-        return description;
+        return getDescription();
     }
 
     public boolean isNsfw() {
+        checkComplete();
         return nsfw;
     }
 
@@ -69,10 +76,11 @@ public class RedditSubreddit {
         if(updatePost){
             checkTime();
         }
-        return nsfw;
+        return isNsfw();
     }
 
     public boolean isQuarantine() {
+        checkComplete();
         return quarantine;
     }
 
@@ -80,10 +88,11 @@ public class RedditSubreddit {
         if(updatePost){
             checkTime();
         }
-        return quarantine;
+        return isQuarantine();
     }
 
     public int getSubscribers() {
+        checkComplete();
         return subscribers;
     }
 
@@ -91,10 +100,11 @@ public class RedditSubreddit {
         if(updatePost){
             checkTime();
         }
-        return subscribers;
+        return getSubscribers();
     }
 
     public long getCreatedAt() {
+        checkComplete();
         return createdAt;
     }
 
@@ -102,7 +112,13 @@ public class RedditSubreddit {
         if(updatePost){
             checkTime();
         }
-        return createdAt;
+        return getCreatedAt();
+    }
+
+    private void checkComplete() {
+        if(!complete) {
+            updateObject();
+        }
     }
 
     private void checkTime(){

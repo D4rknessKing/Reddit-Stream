@@ -2,6 +2,7 @@ package me.d4rk.redditstream;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import me.d4rk.redditstream.objects.RedditComment;
 import me.d4rk.redditstream.objects.RedditPost;
 import me.d4rk.redditstream.objects.RedditSubreddit;
 import org.json.JSONObject;
@@ -34,11 +35,15 @@ public class RedditStream {
         interruptRedditStream();
     }
 
-    public void setWatcher(RedditWatcher redditWatcher){
-        watcher = redditWatcher;
+    public void setWatcher(RedditWatcher watcher){
+        this.watcher = watcher;
     }
 
-    private void handleRedditResponses(RedditWatcher list) throws UnirestException {
+    public RedditWatcher getWatcher() {
+        return watcher;
+    }
+
+    private void handleRedditPosts(RedditWatcher list) throws UnirestException {
         if(list.getTotalCount() <= 0){
             return;
         }
@@ -62,8 +67,8 @@ public class RedditStream {
                         jo.getInt("score"),
                         jo.getInt("ups"),
                         jo.getInt("downs"),
-                        jo.getBoolean("over_18"),
                         jo.getBoolean("spoiler"),
+                        jo.getBoolean("over_18"),
                         jo.getBoolean("quarantine"),
                         jo.getLong("created")
                 );
@@ -81,6 +86,50 @@ public class RedditStream {
             oldEntries.add(permalink);
         }
 
+    }
+
+    private void handleRedditComments(RedditWatcher list) throws UnirestException {
+        if(list.getTotalCount() <= 0){
+            return;
+        }
+
+        JSONObject json = Unirest
+                .get("https://www.reddit.com/r/all/comments/.json?limit=100")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36")
+                .asJson().getBody().getObject();
+
+        for (Object o : json.getJSONObject("data").getJSONArray("children")) {
+            JSONObject jo = ((JSONObject) o).getJSONObject("data");
+            String permalink = "https://www.reddit.com" + jo.getString("permalink");
+            if(!oldEntries.contains(permalink)){
+                RedditComment comment = new RedditComment(
+                        new RedditPost("link_permalink"),
+                        new RedditSubreddit(jo.getString("subreddit")),
+                        jo.getString("author"),
+                        jo.getString("body"),
+                        jo.getString("permalink"),
+                        jo.getInt("score"),
+                        jo.getInt("ups"),
+                        jo.getInt("downs"),
+                        jo.getBoolean("spoiler"),
+                        jo.getBoolean("over_18"),
+                        jo.getBoolean("quarantine"),
+                        jo.getLong("created")
+                );
+                if(watcher != null){
+                    for (String sub : watcher.subreddits) {
+                        if(sub.equalsIgnoreCase(comment.getSubreddit().getName())){
+                            listener.onCommentCreated(comment);
+                            break;
+                        }
+                    }
+                }else{
+                    listener.onCommentCreated(comment);
+                }
+            }
+            oldEntries.add(permalink);
+        }
+
 
     }
 
@@ -90,7 +139,7 @@ public class RedditStream {
                 @Override
                 public void run() {
                     try{
-                        handleRedditResponses(watcher);
+                        handleRedditPosts(watcher);
                     }catch(UnirestException e){
                         e.printStackTrace();
                     }
@@ -103,11 +152,5 @@ public class RedditStream {
     private void interruptRedditStream() {
         streamThread.interrupt();
     }
-
-    private Thread.State getRedditStreamThreadState() {
-        return streamThread.getState();
-    }
-
-
 
 }
